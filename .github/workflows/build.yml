@@ -1,0 +1,69 @@
+name: Build IPA
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.6'
+
+      - name: Verify toolchain
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i iphoneos
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Build device IPA (unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project VTLFiles.xcodeproj \
+            -scheme VTLFiles \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath ${{ runner.temp }}/DerivedData \
+            build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            2>&1 | tee ${{ runner.temp }}/xcodebuild.log
+          APP="${{ runner.temp }}/DerivedData/Build/Products/Release-iphoneos/VTLFiles.app"
+          test -d "$APP"
+          IPA_DIR="${{ runner.temp }}/ipa-staging"
+          mkdir -p "$IPA_DIR/Payload"
+          cp -R "$APP" "$IPA_DIR/Payload/"
+          (cd "$IPA_DIR" && /usr/bin/zip -qry ${{ runner.temp }}/VTLFiles-unsigned.ipa Payload)
+          ls -la ${{ runner.temp }}/VTLFiles-unsigned.ipa
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BuildLog
+          path: ${{ runner.temp }}/xcodebuild.log
+          if-no-files-found: warn
+
+      - name: Upload IPA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: VTLFiles-IPA
+          path: ${{ runner.temp }}/VTLFiles-unsigned.ipa
+          if-no-files-found: warn

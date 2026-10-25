@@ -1,0 +1,31 @@
+name: VTLFiles
+options:
+  bundleIdPrefix: com.vexqyq
+  deploymentTarget:
+    iOS: "26.0"
+
+targets:
+  VTLFiles:
+    type: application
+    platform: iOS
+    deploymentTarget: "26.0"
+    info:
+      path: VTLFiles/Info.plist
+    sources:
+      - path: VTLFiles
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.vexqyq.vtlfiles
+        SWIFT_OBJC_BRIDGING_HEADER: VTLFiles/Bridging-Header.h
+        SWIFT_VERSION: "5.0"
+        SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+        CLANG_ENABLE_MODULES: YES
+        CLANG_ENABLE_OBJC_ARC: YES
+        ENABLE_BITCODE: NO
+        IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGNING_ALLOWED: NO
